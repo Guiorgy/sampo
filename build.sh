@@ -22,7 +22,7 @@ trap cleanup SIGINT
 trap 'die ${LINENO} "$BASH_COMMAND"' ERR
 
 readonly APP=sampo
-readonly VERSION=1.0.0
+readonly VERSION=1.0.3
 readonly BATS_CORE=test/test_helper/bats-core/bin/bats
 
 # get the user config, PORT, LOCAL_PORT, and the SAMPO_BASE are set here
@@ -98,7 +98,8 @@ build_container() {
     exit 1
   fi
 
-  if [[ "${REBUILD}" == "true" ]]; then
+
+  if [[ "${REBUILD}" == "true" ]] || [[ "$(docker images -q "$APP":"$VERSION" 2> /dev/null)" == "" ]]; then
     echo "Rebuilding image..."
     if "${container_binary}" build -t "$APP":"$VERSION" -f ./docker/Dockerfile ./docker; then
       "${container_binary}" container prune --filter "label=app=$APP" --force
