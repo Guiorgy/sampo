@@ -35,7 +35,7 @@ LOG_FILE="$DIR/$APP.log"
 readonly LOG_FILE
 
 # Since the software does not yet adhere to the HTTP spec completely, HTTP/1.0 is used
-# some clients may even need to be told to explicitly use HTTP/0.9 
+# some clients may even need to be told to explicitly use HTTP/0.9
 readonly HTTP_VERSION="HTTP/1.0"
 readonly ACCEPT_TYPE="text/plain"
 readonly ACCEPT_LANG="en-US"
@@ -128,7 +128,7 @@ readonly CONFIG="$DIR/$APP.conf"
 # Functions
 # -------------------------------------------
 # container_check() checks to see if the script is running in a container by looking at cgroups
-# it also checks if it is running on kubernetes via a variable 
+# it also checks if it is running on kubernetes via a variable
 container_check() {
   if [[ -f "$CONTAINER_CHECK" ]] ; then
     if [[ -n "${KUBERNETES_SERVICE_HOST:-}" ]]; then
@@ -218,7 +218,7 @@ send_response() {
   while read -r LINE; do
     respond "$LINE"
   done
-  
+
   # Log the request now that the code has been set
   STATUS_CODE=$code
   loggy ""
@@ -230,6 +230,13 @@ fail_with() {
   local code="$1"
   send_response "$code" <<< "$code ${RESPONSE_CODE[$code]}"
   exit 0
+}
+
+# url_decode() decodes a URL encoded string
+# https://stackoverflow.com/a/37840948
+url_decode() {
+  : "${*//+/ }"
+  printf '%b' "${_//%/\\x}"
 }
 
 # serve_file() returns the contents of a file on the host to the client
@@ -402,12 +409,18 @@ run_external_script() {
     IFS=$' \t\n'
     for opt in "${cgiopts[@]}"; do
       key="${opt%%=*}"
-      val="${opt#*=}"
+      val=$(url_decode "${opt#*=}")
       if [ -n "$val" ]; then
         args=( "$val" "${args[@]}" )
       fi
       args=( --$key "${args[@]}" )
     done
+  else
+    declare -a decoded=()
+    for arg in "${args[@]}"; do
+      decoded+=( "$(url_decode "$arg")" )
+    done
+    args="${decoded[@]}"
   fi
   if [[ "${SAMPO_DEBUG:=false}" == "true" ]]; then
     debuggy "[$(basename "${BASH_SOURCE[0]}"):${LINENO}:${FUNCNAME[*]:0:${#FUNCNAME[@]}-1}()] running external script: $script_to_run ${args[*]}"
@@ -484,7 +497,7 @@ listen_for_requests() {
   done
 
   if [[ "$REQUEST_METHOD" == "GET" ]]; then
-    :  
+    :
   else
     send_response 501 < <(echo "$REQUEST_METHOD is invalid or not yet implemented. $FUNDING")
     exit 0
