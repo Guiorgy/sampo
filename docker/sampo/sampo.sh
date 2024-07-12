@@ -18,7 +18,7 @@ set -o pipefail
 # -------------------------------------------
 # This variable is useful if we ever want to use the name of the app anywhere in the code
 readonly APP=sampo
-readonly VERSION=1.0.0
+readonly VERSION=1.0.3
 readonly FUNDING="https://github.com/sponsors/jacobsalmela/"
 # Get the current date
 # For HTTP/1.1 it must be in the format defined in RFC 1123
