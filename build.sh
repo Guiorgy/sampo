@@ -23,7 +23,6 @@ trap 'die ${LINENO} "$BASH_COMMAND"' ERR
 
 readonly APP=sampo
 readonly VERSION=1.0.3
-readonly BATS_CORE=test/test_helper/bats-core/bin/bats
 
 # get the user config, PORT, LOCAL_PORT, and the SAMPO_BASE are set here
 #shellcheck source=docker/sampo/sampo.conf
@@ -56,31 +55,6 @@ cleanup() {
   echo "Stopping socat..."
   if ! stop_proc "socat"; then
     echo "No socat to stop"
-  fi
-}
-
-run_all_tests() {
-  echo "Running FULL test suite"
-  # BATS doesn't always work, but it's a nice quick inidicator if things are decent while developing this.
-  if ! $BATS_CORE "$DIR/test/"; then
-    echo "Bats tests failed.  Please fix before continuing."
-    return 0
-  fi
-}
-
-run_unit_tests() {
-  echo "Running UNIT test suite"
-  if ! $BATS_CORE --filter-tags unit "$DIR/test/"; then
-    echo "Bats tests failed.  Please fix before continuing."
-    return 0
-  fi
-}
-
-run_integration_tests() {
-  echo "Running INTEGRATION test suite"
-  if ! $BATS_CORE --filter-tags integration "$DIR/test/"; then
-    echo "Bats tests failed.  Please fix before continuing."
-    return 0
   fi
 }
 
@@ -410,11 +384,8 @@ fi
 #/    -p      list port forwarding rule
 #/    -r      rebuild the container (must preceed other options)
 #/    -c      cleanup any previous runs
-#/    -t      run all tests
-#/    -u      run unit tests
-#/    -i      run integration tests
 
-while getopts ":hvbdkKlpcrtui" opt; do
+while getopts ":hvbdkKlpcr" opt; do
   case ${opt} in
     h ) usage
       ;;
@@ -433,12 +404,6 @@ while getopts ":hvbdkKlpcrtui" opt; do
     c ) cleanup
       ;;
     r ) REBUILD=true
-      ;;
-    t ) run_all_tests
-      ;;
-    u ) run_unit_tests
-      ;;
-    i ) run_integration_tests
       ;;
     * ) usage
       ;;
